@@ -2,12 +2,14 @@ from model.network import Network
 from ve import sum_product_ve
 
 if __name__ == '__main__':
-    possibleValues =  { 
+    possibleValues = { 
         'A': ['T', 'F'], 
         'B': ['T', 'F'], 
         'C': ['T', 'F'], 
         'D': ['T', 'F'], 
-        'E': ['T', 'F']
+        'E': ['T', 'F'], 
+        'F': ['T', 'F'], 
+        'G': ['T', 'F']
     }
 
     parents = {
@@ -15,7 +17,9 @@ if __name__ == '__main__':
         'B': [], 
         'C': ['A'], 
         'D': ['A', 'B'], 
-        'E': ['C']
+        'E': ['C'], 
+        'F': ['E', 'G'], 
+        'G': []
     }
 
     CPTs = [
@@ -58,17 +62,44 @@ if __name__ == '__main__':
                 'E = T | C = F': 0.2, 
                 'E = F | C = F': 0.8
             }
+        }, 
+        {
+            'F': {
+                'F = T | E = T, G = T': 0.7,
+                'F = F | E = T, G = T': 0.3,
+                'F = T | E = T, G = F': 0.8,
+                'F = F | E = T, G = F': 0.2,
+                'F = T | E = F, G = T': 0.15,
+                'F = F | E = F, G = T': 0.85,
+                'F = T | E = F, G = F': 0.35,
+                'F = F | E = F, G = F': 0.65,
+            }    
+        }, 
+        {
+            'G': {
+                'G = T': 0.85, 
+                'G = F': 0.15
+            }    
         }
     ]
 
-    conditions = { 
-        'D' : 'F', 
-        'C' : 'T'
-    }
-
     net = Network(possibleValues, parents, CPTs)
-    factors = net.getFactors(conditions)
     order = net.topoSort()
 
-    ans = sum_product_ve(factors, order, possibleValues)
-    print(ans)
+    query = { 
+        'F' : 'T'
+    }
+
+    condition = {
+        'D' : 'F', 
+    }
+
+    num = { **query, **condition }
+
+    num_factors = net.getFactors(num)
+    den_factors = net.getFactors(condition)
+
+    num = sum_product_ve(num_factors, order, possibleValues)
+    den = sum_product_ve(den_factors, order, possibleValues)
+
+    print(num.table[()]/den.table[()])
